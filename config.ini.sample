@@ -1,13 +1,16 @@
 [Containers]
-excluded_containers = container1, container2, container3
-included_containers = container4
+excluded_containers = container1, container2
+included_containers =
 
 [Settings]
-verbose = false
+verbose = true
 speedtest = true
 telegram_enabled = true
+prowl_enabled = true
 
 [Telegram]
-bottoken = telegrambottoken
-chatid = teleggramchatid
+bottoken = YOUR_BOT_TOKEN_HERE
+chatid = YOUR_CHAT_ID_HERE
 
+[Prowl]
+apikey = YOUR_PROWL_API_KEY

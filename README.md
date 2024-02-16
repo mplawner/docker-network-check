@@ -1,13 +1,14 @@
 # Docker Container Monitor and Notifier
 
-This script monitors Docker containers, checks their external IP addresses, identifies if they are running over a VPN, measures their internet speed, and sends notifications via Telegram with the results.
+This script monitors Docker containers, checks their external IP addresses, identifies if they are running over a VPN, measures their internet speed, and sends notifications via various applications with the results.
 
 ## Prerequisites
 
 - Python 3
 - Docker
 - `requests` library for Python
-- Telegram Bot Token and Chat ID
+- Telegram Bot Token and Chat ID (Optional)
+- Prowl API (Optional)
 
 ## Setup
 
@@ -55,10 +56,14 @@ included_containers =
 verbose = true
 speedtest = true
 telegram_enabled = true
+prowl_enabled = true
 
 [Telegram]
 bottoken = YOUR_BOT_TOKEN_HERE
 chatid = YOUR_CHAT_ID_HERE
+
+[Prowl]
+apikey = YOUR_PROWL_API_KEY
 ```
 
 ### 5. Running the Script

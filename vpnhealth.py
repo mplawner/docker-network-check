@@ -17,10 +17,15 @@ except ValueError:
     runspeedtest = False
 try:
     notify_telegram  = config.getboolean('Settings', 'telegram_enabled')
+    bot_token = config.get('Telegram', 'bottoken', fallback='')
+    chat_id = config.get('Telegram', 'chatid', fallback='')
 except ValueError:
     notify_telegram  = False
-bot_token = config.get('Telegram', 'bottoken', fallback='')
-chat_id = config.get('Telegram', 'chatid', fallback='')
+try:
+    notify_prowl  = config.getboolean('Settings', 'prowl_enabled')
+    prowl_api_key = config.get('Prowl', 'apikey', fallback='')
+except ValueError:
+    notify_prowl = False
 
 # Function to get the host's external IP address
 def get_host_external_ip():
@@ -82,6 +87,18 @@ def send_telegram_message(bot_token, chat_id, message):
         print(f"Failed to send message: {response.text}")
     #return response.json()
 
+def send_prowl_notification(api_key, message):
+    url = "https://api.prowlapp.com/publicapi/add"
+    params = {
+        "apikey": api_key,
+        "application": "Docker Monitor",
+        "event": "Container Status",
+        "description": message
+    }
+    response = requests.post(url, params=params)
+    if not response.ok:
+        print(f"Failed to send Prowl notification: {response.text}")
+
 # Main logic
 if __name__ == "__main__":
     host_ip = get_host_external_ip()
@@ -110,6 +127,8 @@ if __name__ == "__main__":
                 message += f"\nNetwork Speed: {speed_test_result}"
             if notify_telegram:
                 send_telegram_message(bot_token, chat_id, message)
+            if notify_prowl:
+                send_prowl_notification(prowl_api_key, message)
             print(message)
         else:
             print(f"Failed to get external IP for container: {container_name}")
