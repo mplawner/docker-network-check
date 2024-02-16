@@ -53,6 +53,7 @@ excluded_containers = container1, container2
 included_containers =
 
 [Settings]
+logfile = vpnhealth.log
 verbose = true
 speedtest = true
 telegram_enabled = true
@@ -82,10 +83,10 @@ Open your crontab file:
 crontab -e
 ```
 
-Add a line to execute the script at your desired frequency. For example, to run it every day at midnight:
+Add a line to execute the script at your desired frequency. For example, to run it hourly:
 
 ```cron
-0 0 * * * /path/to/your/venv/bin/python /path/to/your/script.py >> /path/to/your/logfile.log 2>&1
+0 * * * * /path/to/your/venv/bin/python /path/to/your/script.py
 ```
 
 Replace `/path/to/your/venv/bin/python` and `/path/to/your/script.py` with the full paths to your Python virtual environment's interpreter and your script, respectively.

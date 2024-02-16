@@ -1,10 +1,15 @@
 import subprocess
 import configparser
 import requests
+import logging
 
 # Read configuration from config.ini
 config = configparser.ConfigParser()
 config.read('config.ini')
+# Configure logging
+log_file = config.get('Settings', 'logfile', fallback='vpnhealth.log')
+logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 excluded_containers = config.get('Containers', 'excluded_containers', fallback='').split(', ')
 included_containers = config.get('Containers', 'included_containers', fallback='').split(', ')
 try:
@@ -65,17 +70,21 @@ def get_container_external_ip(container_id):
             return "Error occurred while trying to get external IP"
 
 def download_speed_test(container_id):
-    test_file_url = "http://ipv4.download.thinkbroadband.com/5MB.zip"  # Example URL, replace with your chosen test file
+    test_file_url = "http://ipv4.download.thinkbroadband.com/5MB.zip"
     curl_command = f"curl -s -w '%{{time_total}}' -o /dev/null {test_file_url}"
+   
+    # Determine if the command should run on the host or within a Docker container
+    command_to_run = curl_command if container_id == "0" else f"docker exec {container_id} /bin/sh -c '{curl_command}'"
+
     try:
-        output = subprocess.check_output(f"docker exec {container_id} /bin/sh -c '{curl_command}'", shell=True, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(command_to_run, shell=True, stderr=subprocess.STDOUT)
         time_taken = float(output.decode().strip())
         if time_taken > 0:
             # Assuming a 5 MB file, convert time taken from seconds to download speed in Mbps
             download_speed_mbps = (5 * 8) / time_taken
-            return f"Download Speed: {download_speed_mbps:.2f} Mbps"
+            return f"{download_speed_mbps:.2f} Mbps"
         else:
-            return "Failed to calculate download speed: Time taken is 0"
+            return "Failed"
     except subprocess.CalledProcessError as e:
         return f"Failed to perform speed test: {e.output.decode()}"
 
@@ -84,8 +93,7 @@ def send_telegram_message(bot_token, chat_id, message):
     data = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
     response = requests.post(url, data=data)
     if not response.ok:
-        print(f"Failed to send message: {response.text}")
-    #return response.json()
+        logging.error(f"Failed to send message: {response.text}")
 
 def send_prowl_notification(api_key, message):
     url = "https://api.prowlapp.com/publicapi/add"
@@ -97,7 +105,7 @@ def send_prowl_notification(api_key, message):
     }
     response = requests.post(url, params=params)
     if not response.ok:
-        print(f"Failed to send Prowl notification: {response.text}")
+        logging.error(f"Failed to send Prowl notification: {response.text}")
 
 # Main logic
 if __name__ == "__main__":
@@ -109,27 +117,34 @@ if __name__ == "__main__":
 
         if not is_container_selected(container_name, container_id):
             if verbose:
-                print(f"Skipping container: {container_name}")
+                logging.info(f"Skipping container: {container_name}")
             continue
 
         if not curl_available_in_container(container_id):
             if verbose:
-                print(f"curl not found in {container_name}, skipping...")
+                logging.info(f"curl not found in {container_name}, skipping...")
             continue
 
         container_ip = get_container_external_ip(container_id)
 
         if container_ip:
-            on_main_ip = "True" if container_ip == host_ip else "False"
-            message = f"Container Name: {container_name}\nOn Main IP: {on_main_ip}\nExternal IP: {container_ip}"
+            on_vpn = "False" if container_ip == host_ip else "True"
+            # Multi-line message for notifications
+            message = f"Container Name: {container_name}\nVPN Active: {on_vpn}\nExternal IP: {container_ip}"
+            
             if runspeedtest:
                 speed_test_result = download_speed_test(container_id)
-                message += f"\nNetwork Speed: {speed_test_result}"
-            if notify_telegram:
-                send_telegram_message(bot_token, chat_id, message)
-            if notify_prowl:
-                send_prowl_notification(prowl_api_key, message)
-            print(message)
-        else:
-            print(f"Failed to get external IP for container: {container_name}")
+                host_speedtest = download_speed_test("0")  # Assuming "0" is used for the host
+                message += f"\nNetwork Speed: {speed_test_result}\nHost Network Speed: {host_speedtest}"
 
+            # Single-line message for logging
+            log_message = message.replace('\n', ' | ')  # Use ' | ' as a delimiter to separate message parts in the log
+
+            if notify_telegram:
+                send_telegram_message(bot_token, chat_id, message)  # Use the original multi-line message for Telegram
+            if notify_prowl:
+                send_prowl_notification(prowl_api_key, message)  # Use the original multi-line message for Prowl
+
+            logging.info(log_message)  # Log the single-line version
+        else:
+            logging.error(f"Failed to get external IP for container: {container_name}")
