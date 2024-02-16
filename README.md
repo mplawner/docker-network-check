@@ -72,7 +72,7 @@ apikey = YOUR_PROWL_API_KEY
 Run the script manually to ensure it works as expected.
 
 ```bash
-python script.py
+python script.py --config config.ini
 ```
 
 ### 6. Setting up a Cron Job
@@ -86,10 +86,10 @@ crontab -e
 Add a line to execute the script at your desired frequency. For example, to run it hourly:
 
 ```cron
-0 * * * * /path/to/your/venv/bin/python /path/to/your/script.py
+0 * * * * /path/to/your/venv/bin/python /path/to/your/script.py --config /path/to/your/config.ini
 ```
 
-Replace `/path/to/your/venv/bin/python` and `/path/to/your/script.py` with the full paths to your Python virtual environment's interpreter and your script, respectively.
+Replace `/path/to/your/venv/bin/python`, `/path/to/your/script.py`, and `/path/to/your/config.ini` with the full paths to your Python virtual environment's interpreter, your script, and your config.ini file respectively.
 
 ## Troubleshooting
 

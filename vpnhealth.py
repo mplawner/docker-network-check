@@ -1,11 +1,18 @@
+import argparse
 import subprocess
 import configparser
 import requests
 import logging
 
-# Read configuration from config.ini
+# Set up argument parsing
+parser = argparse.ArgumentParser(description='Run the VPN health check script with a specified configuration file.')
+parser.add_argument('--config', type=str, required=True, help='Path to the configuration file')
+args = parser.parse_args()
+
+# Read configuration from the specified config.ini file
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read(args.config)
+
 # Configure logging
 log_file = config.get('Settings', 'logfile', fallback='vpnhealth.log')
 logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

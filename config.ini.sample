@@ -3,7 +3,7 @@ excluded_containers = container1, container2
 included_containers =
 
 [Settings]
-logfile = vpnhealth.log
+logfile = /path/to/your/vpnhealth.log
 verbose = true
 speedtest = true
 telegram_enabled = true
