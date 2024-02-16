@@ -1,0 +1,13 @@
+[Containers]
+excluded_containers = container1, container2, container3
+included_containers = container4
+
+[Settings]
+verbose = false
+speedtest = true
+telegram_enabled = true
+
+[Telegram]
+bottoken = telegrambottoken
+chatid = teleggramchatid
+
