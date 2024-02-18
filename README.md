@@ -72,8 +72,14 @@ apikey = YOUR_PROWL_API_KEY
 Run the script manually to ensure it works as expected.
 
 ```bash
-python script.py --config config.ini
+python vpnhealth.py --config config.ini
 ```
+
+Remember, to deactivate the virtual environment when you are done, use the command:
+
+```deactivate
+```
+
 
 ### 6. Setting up a Cron Job
 
