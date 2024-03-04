@@ -19,6 +19,9 @@ logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s -
 
 excluded_containers = config.get('Containers', 'excluded_containers', fallback='').split(', ')
 included_containers = config.get('Containers', 'included_containers', fallback='').split(', ')
+
+test_file_url = config.get('Settings', 'test_file_url', fallback='http://ipv4.download.thinkbroadband.com/5MB.zip') 
+
 try:
     verbose = config.getboolean('Settings', 'verbose', fallback=False)
 except ValueError:
@@ -77,18 +80,20 @@ def get_container_external_ip(container_id):
             return "Error occurred while trying to get external IP"
 
 def download_speed_test(container_id):
-    test_file_url = "http://ipv4.download.thinkbroadband.com/5MB.zip"
-    curl_command = f"curl -s -w '%{{time_total}}' -o /dev/null {test_file_url}"
-   
+    curl_command = f"curl -s -w '%{{time_total}},%{{size_download}}' -o /dev/null {test_file_url}"
+
     # Determine if the command should run on the host or within a Docker container
     command_to_run = curl_command if container_id == "0" else f"docker exec {container_id} /bin/sh -c '{curl_command}'"
 
     try:
         output = subprocess.check_output(command_to_run, shell=True, stderr=subprocess.STDOUT)
-        time_taken = float(output.decode().strip())
+        time_taken_str, size_download_str = output.decode().strip().split(',')
+        time_taken = float(time_taken_str)
+        size_download_bytes = float(size_download_str)
         if time_taken > 0:
-            # Assuming a 5 MB file, convert time taken from seconds to download speed in Mbps
-            download_speed_mbps = (5 * 8) / time_taken
+            # Convert time taken from seconds to download speed in Mbps
+            download_speed_mbps = (size_download_bytes * 8) / (time_taken * 1024 * 1024)
+            #print (f"Size of Download in bytes: {size_download_bytes} and Time Taken: {time_taken}")
             return f"{download_speed_mbps:.2f} Mbps"
         else:
             return "Failed"

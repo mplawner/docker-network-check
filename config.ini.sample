@@ -3,11 +3,12 @@ excluded_containers = container1, container2
 included_containers =
 
 [Settings]
-logfile = /path/to/your/vpnhealth.log
+logfile = vpnhealth.log
 verbose = true
 speedtest = true
 telegram_enabled = true
 prowl_enabled = true
+test_file_url = http://ipv4.download.thinkbroadband.com/5MB.zip
 
 [Telegram]
 bottoken = YOUR_BOT_TOKEN_HERE
