@@ -58,6 +58,7 @@ verbose = true
 speedtest = true
 telegram_enabled = true
 prowl_enabled = true
+test_file_url = http://ipv4.download.thinkbroadband.com/5MB.zip
 
 [Telegram]
 bottoken = YOUR_BOT_TOKEN_HERE
